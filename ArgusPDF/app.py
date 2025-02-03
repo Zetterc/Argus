@@ -38,8 +38,17 @@ def load_data(uploaded_file):
             prefix_groups[prefix].append(sheet)
             
         # Charger les données pour chaque feuille
-        data_dict = {sheet: pd.read_excel(uploaded_file, sheet_name=sheet, index_col=0, parse_dates=True) 
-                    for sheet in sheets}
+        data_dict = {}
+        for sheet in sheets:
+            df = pd.read_excel(uploaded_file, sheet_name=sheet, index_col=0)
+            # S'assurer que l'index est au format datetime
+            if not isinstance(df.index, pd.DatetimeIndex):
+                try:
+                    df.index = pd.to_datetime(df.index)
+                except:
+                    st.error(f"Erreur: L'index de la feuille {sheet} n'a pas pu être converti en dates. Assurez-vous que la première colonne contient des dates valides.")
+                    return None, None
+            data_dict[sheet] = df
                     
         return data_dict, prefix_groups
     return None, None
